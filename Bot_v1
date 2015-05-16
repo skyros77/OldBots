@@ -1,0 +1,101 @@
+package mo;
+import mo.utils.*;
+import robocode.*;
+import java.util.Hashtable;
+import java.awt.*;
+import java.awt.geom.*;
+import static robocode.util.Utils.*;
+ 
+public class SkybotA extends AdvancedRobot
+{
+ 
+	static Hashtable<String, Enemy> enemies = new Hashtable<String, Enemy>();
+	static Enemy en;
+	static Rectangle2D.Double boundary;
+	
+	public void run()
+	{
+		en = new Enemy();
+		boundary = new Rectangle2D.Double(17,17,766,566);
+		setAdjustGunForRobotTurn(true);
+		setAdjustRadarForGunTurn(true);
+		
+		turnRadarRightRadians(Double.NEGATIVE_INFINITY);
+		
+		while(true) {
+			scan();
+		}
+ 
+	}
+	
+	public void doMove() {
+		if (getTime()%30 == 0) { setAhead(300*(Math.random()-0.5));	}
+		setTurnRightRadians(en.bearing + (Math.PI/2));		
+	}
+	
+	public void doRadar() {
+		setTurnRadarRightRadians(normalRelativeAngle(getHeadingRadians() + en.bearing - getRadarHeadingRadians()));
+	}
+	
+	public void doGun() {
+		
+			int bulletPower = 3;
+			int bulletVelocity = 20-(3*bulletPower);
+			
+			//set linear targeting
+			long time = getTime() + (int)(en.distance/bulletVelocity);
+			double aimX = en.x + Math.sin(en.heading) * en.velocity * (time-en.time);
+			double aimY = en.y + Math.cos(en.heading) * en.velocity * (time-en.time);		
+			double rotGun = normalRelativeAngle(Math.atan2(aimX,aimY)-getGunHeadingRadians());
+		
+			setTurnGunRightRadians(rotGun);
+			fireBullet(bulletPower);	
+	}
+	
+	public void onScannedRobot(ScannedRobotEvent e)
+	{
+	
+ 
+		/*
+		Enemy en = (Enemy)enemies.get(e.getName());
+		
+		if(en == null){
+			en = new Enemy();
+			enemies.put(e.getName(), en);
+		}
+		*/
+		
+		en.isAlive		= true;
+		en.energy 		= e.getEnergy();
+		en.time			= getTime();	
+		en.distance		= e.getDistance();
+		en.bearing		= e.getBearingRadians();
+		en.heading		= e.getHeadingRadians();		
+		en.absBearing	= e.getBearingRadians() + getHeadingRadians();
+		en.velocity		= e.getVelocity();
+		en.pos			= new Point2D.Double(getX() + Math.sin(en.absBearing) * en.distance, getY() + Math.cos(en.absBearing) * en.distance);
+		en.x			= Math.sin(en.absBearing)* en.distance + Math.sin(en.heading) * en.velocity - Math.sin(getHeadingRadians()) * getVelocity();
+		en.y			= Math.cos(en.absBearing)* en.distance + Math.cos(en.heading) * en.velocity - Math.cos(getHeadingRadians()) * getVelocity();	
+	
+		doRadar();
+	}
+	
+	public void onPaint(Graphics2D g) { 
+		debug.paintBoundary(g, boundary);
+		debug.paintTarget(g, en.pos);
+	}
+ 
+	
+ 
+	public class Enemy {
+		boolean			isAlive;		
+		double			energy;
+		double			distance;
+		double			heading;
+		double			velocity;
+		double			bearing, absBearing;
+		double			x, y;		
+		long			time;		
+		Point2D.Double	pos;
+	}
+}
