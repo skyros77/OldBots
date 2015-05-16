@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.geom.*;
 import static robocode.util.Utils.*;
  
-public class SkybotA extends AdvancedRobot
+public class Bot_v1 extends AdvancedRobot
 {
  
 	static Hashtable<String, Enemy> enemies = new Hashtable<String, Enemy>();
