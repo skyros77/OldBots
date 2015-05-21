@@ -1,0 +1,145 @@
+package mo;
+import robocode.*;
+import java.awt.geom.*;
+import java.util.*;
+import static robocode.util.Utils.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
+ 
+public class Bot_v4 extends AdvancedRobot
+{
+
+	static LinkedHashMap<String,Object> enemies;
+	static int patternLength = 30;
+	static EnemyData target;
+	static double scanDir;
+	static Object scanTarget;
+
+	static double pHeading;
+	Point2D.Double cPos;
+	Point2D.Double pPos;
+	double oldEnemyHeading;
+
+
+	public void run()
+	{
+		enemies = new LinkedHashMap<String,Object>(5, 2, true);
+		target = new EnemyData();
+        setAdjustGunForRobotTurn(true);
+        setAdjustRadarForGunTurn(true);
+		scanDir = 1;
+		setTurnRadarRightRadians(scanDir * Double.POSITIVE_INFINITY);
+		while(true) {
+			//setTurnRadarRightRadians(scanDir * Double.POSITIVE_INFINITY);
+			scan();
+		}
+	}
+
+
+	
+	public void onScannedRobot(ScannedRobotEvent e)
+	{
+		EnemyData en = (EnemyData)enemies.get(e.getName());
+		if(en == null) {
+			en = new EnemyData();
+			enemies.put(e.getName(), en);
+		}
+			
+		en.time			= getTime();	
+		en.heading		= e.getHeadingRadians();
+		en.absBearing	= e.getBearingRadians() + getHeadingRadians();
+		en.vel			= e.getVelocity();
+		//en.pos		= new Point2D.Double(getX() + Math.sin(en.absBearing) * en.distance, getY() + Math.cos(en.absBearing) * en.distance);
+		//en.x			= Math.sin(en.absBearing)* en.distance + Math.sin(en.heading) * en.velocity - Math.sin(getHeadingRadians()) * getVelocity();
+		//en.y			= Math.cos(en.absBearing)* en.distance + Math.cos(en.heading) * en.velocity - Math.cos(getHeadingRadians()) * getVelocity();
+
+		//Iterate through targets and rotate radar.  This is more efficient than 360 sweeps but uses more memory
+		//if ((e.getName() == scanTarget || scanTarget == null) && enemies.size() == getOthers()) {
+		if (getOthers() == 1) {
+			setTurnRadarRightRadians(normalRelativeAngle(getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians())); 
+		}
+		else {
+			if (e.getName() == scanTarget && enemies.size() == getOthers()) {
+				scanTarget = enemies.keySet().iterator().next();
+
+				scanDir = normalRelativeAngle(((EnemyData)enemies.get(scanTarget)).absBearing - getRadarHeadingRadians());
+				setTurnRadarRightRadians(scanDir * Double.POSITIVE_INFINITY);
+			}
+		}
+			
+
+		//Single Tick Pattern Matching
+		
+		double bulletPower = 3;
+		double bulletSpeed = 20.0 - 3.0 * bulletPower;
+
+		setFire(bulletPower);
+
+
+		
+		double theta = e.getBearingRadians() + getHeadingRadians(); //absBearing between two points
+		double enemyHeading = e.getHeadingRadians();
+		double enemyHeadingChange = enemyHeading - oldEnemyHeading;
+		oldEnemyHeading = enemyHeading;
+		double time = e.getDistance()/bulletSpeed;
+		out.println(time);
+		
+		cPos = new Point2D.Double(getX() + Math.sin(en.absBearing) * e.getDistance(), getY() + Math.cos(en.absBearing) * e.getDistance());
+		//pPos = new Point2D.Double(cPos.x + e.getVelocity() * bulletSpeed , cPos.y + e.getVelocity() * bulletSpeed);
+	//	pPos = new Point2D.Double(cPos.x + e.getDistance() * Math.sin(en.heading), cPos.y + e.getDistance() * Math.cos(en.heading));
+		pPos = new Point2D.Double(cPos.x + e.getVelocity() * Math.sin(e.getHeadingRadians()) * time ,cPos.y + e.getVelocity() * Math.cos(e.getHeadingRadians()) * time);
+		
+
+		//out.println(e.getVelocity());
+		//out.println("cPos.x: " + cPos.x + " cPos.y: " + cPos.y);
+		double absBearing2 = normalAbsoluteAngle(Math.atan2(pPos.x - getX(), pPos.y - getY()));
+		//out.println("theta: " + theta + " absBearing: " + en.absBearing);
+
+/*
+		Point2D.Double robotLocation = new Point2D.Double(getX(), getY());
+        double enemyAbsoluteBearing = getHeadingRadians() + e.getBearingRadians();
+        double enemyDistance = e.getDistance();
+		pPos = new Point2D.Double(projectMotion(robotLocation, enemyAbsoluteBearing, enemyDistance));
+*/
+
+
+
+		//Point2D.Double tPos = new Point2D.Double(getX() + Math.sin(en.absBearing) * en.distance, getY() + Math.cos(en.absBearing) * en.distance);
+		//Point2D.Double myPos = new Point2D.Double(getX(), getY());
+
+		double gunTurn = absBearing2 - getGunHeadingRadians();
+
+		//setTurnGunRightRadians(normalRelativeAngle(theta - getGunHeadingRadians()));
+	
+		setTurnGunRightRadians(normalRelativeAngle(gunTurn));
+		
+		en.pHeading = en.heading;
+		en.pVel = en.vel;
+	}
+	
+		private static Point2D.Double projectMotion(Point2D.Double loc, double heading, double distance){
+			return new Point2D.Double(loc.x + distance*Math.sin(heading), loc.y + distance*Math.cos(heading));			
+		}
+
+	
+	public void onRobotDeath(RobotDeathEvent e) {
+		enemies.remove(e.getName());
+	}
+
+	public void onPaint(Graphics2D g) {		
+		g.setColor(new Color(255,255,255,100));
+		g.fillOval((int)cPos.x-25, (int)cPos.y-25, 50, 50);
+		
+		g.setColor(new Color(255,0,0,200));
+		g.fillOval((int)pPos.x-10, (int)pPos.y-10, 20, 20);
+	}
+
+	//revise this depending on how much data I want to save
+	public class EnemyData {
+		double			vel, pVel;
+		double			heading, pHeading;
+		double			absBearing;
+		long			time;		
+		//Point2D.Double	pos;
+	}
+}
