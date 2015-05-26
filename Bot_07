@@ -1,0 +1,198 @@
+package mo;
+import robocode.*;
+import java.awt.geom.*;
+import java.util.*;
+import static robocode.util.Utils.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
+ 
+public class Bot_v7 extends AdvancedRobot
+{
+
+	static LinkedHashMap<String,Object> enemies;
+	static int patternLength = 30;
+	static EnemyData target;
+	static double scanDir;
+	static Object scanTarget = null;
+
+	Point2D.Double cPos;
+	Point2D.Double pPos;
+	Point2D.Double gunTracker;
+	Point2D.Double radarTracker;
+
+	//pattern matcher
+		static int n;
+		static double ev[] = new double[50000];
+		static StringBuffer pattern = new StringBuffer();
+		double pHeading;
+
+	public void run()
+	{
+		enemies = new LinkedHashMap<String,Object>(5, 2, true);
+		target = new EnemyData();
+        setAdjustGunForRobotTurn(true);
+        setAdjustRadarForGunTurn(true);
+		scanDir = 1;
+		setTurnRadarRightRadians(scanDir * Double.POSITIVE_INFINITY);
+		while(true) {
+			//setTurnRadarRightRadians(scanDir * Double.POSITIVE_INFINITY);
+			scan();
+		}
+	}
+
+
+	
+	public void onScannedRobot(ScannedRobotEvent e)
+	{
+		EnemyData en = (EnemyData)enemies.get(e.getName());
+		if(en == null) {
+			en = new EnemyData();
+			enemies.put(e.getName(), en);
+		}
+			
+		en.time			= getTime();	
+		en.heading		= e.getHeadingRadians();
+		en.absBearing	= e.getBearingRadians() + getHeadingRadians();
+		en.vel			= e.getVelocity();
+		//en.pos		= new Point2D.Double(getX() + Math.sin(en.absBearing) * en.distance, getY() + Math.cos(en.absBearing) * en.distance);
+		//en.x			= Math.sin(en.absBearing)* en.distance + Math.sin(en.heading) * en.velocity - Math.sin(getHeadingRadians()) * getVelocity();
+		//en.y			= Math.cos(en.absBearing)* en.distance + Math.cos(en.heading) * en.velocity - Math.cos(getHeadingRadians()) * getVelocity();
+
+		//Iterate through targets and rotate radar.  This is more efficient than 360 sweeps but uses more memory
+		if (getOthers() == 1) {
+			setTurnRadarRightRadians(normalRelativeAngle(getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians())); 
+		}
+		else {
+			if (e.getName() == scanTarget || scanTarget == null && enemies.size() == getOthers()) {
+				scanTarget = enemies.keySet().iterator().next();
+
+				scanDir = normalRelativeAngle(((EnemyData)enemies.get(scanTarget)).absBearing - getRadarHeadingRadians());
+				setTurnRadarRightRadians(scanDir * Double.POSITIVE_INFINITY);
+			}
+		}
+
+		//Single Tick Pattern Matching
+		
+		Point2D.Double eTick = new Point2D.Double(e.getHeadingRadians(), e.getVelocity());
+		char symbol = encode(eTick.x - pHeading, eTick.y);
+
+		Point2D.Double temp = decode(symbol);
+			
+		out.println("heading: " + (eTick.x - pHeading) + "\nsymbol: " + symbol + "\nnew Heading: " + temp.x);
+		pHeading = eTick.x;
+
+/* this works
+		double a = eTick.x - pHeading;
+		double b = Math.rint(Math.toDegrees(a));
+		char c = (char)(b+200);
+		double d = (double)(c+200);
+		double f = Math.toRadians(d);
+		
+
+		out.println(
+			"Radians: " + a + "\n" +
+			"To Degrees: " + b + "\n" +
+			"To Symbol: " + c + "\n" +
+			"Back to Degrees: " + d + "\n" + 
+			"Back to Radians: " + f + "\n\n"
+		);
+*/
+/* this also works
+ int num = 19; //largest divisble number needed to return a remainder
+ double a = num * 4 + 1;
+ double c = a % num;
+ double b = ((a-c)/num);
+
+
+		out.println(
+			"total: " + a + "\n" +
+			"heading: " + b + "\n" +
+			"vel: " + c + "\n\n"
+		);
+*/
+
+
+		//decode
+
+		 
+
+
+
+
+
+
+		//This code goes into the ScannedBot event
+			//ev contains the accumulated perpendicular velocity of the enemy
+			//pattern contains the velocity of the enemy
+			//the pattern matcher calculates the best gun bearing to fire based on target previous movements
+			
+/*
+			double targetBearing;
+			setTurnRadarRightRadians(Math.sin((targetBearing = e.getBearingRadians() + getHeadingRadians()) - getRadarHeadingRadians()));
+			ev[++n] = ev[n - 1] + e.getVelocity() * Math.sin(e.getHeadingRadians() - targetBearing);
+			out.println("n val: " + n + " : " + ev[2] + " : " + e.getVelocity() * Math.sin(e.getHeadingRadians() - targetBearing));
+			
+			pattern.append(Character.forDigit((int)e.getVelocity() + 8, 20));
+			int pointer = pattern.toString().indexOf(pattern.substring(Math.max(pattern.length() - 10, 0))) + 9;
+			setTurnGunRightRadians(Math.sin(((ev[Math.min(pointer + (int)e.getDistance() / 11, n)] - ev[pointer]) / e.getDistance () + targetBearing) - getGunHeadingRadians()));
+			setFire(3);
+			
+*/
+
+
+	//	out.println("n: " + n + " num: " + (char)n);
+	//	n++;
+
+		}
+
+
+		public char encode(double heading, double velocity)
+		{
+			int o = 200;  //offset symbol pos
+			int a = 19;  //largest divisible number that returns a remainder
+			double b = Math.rint(Math.toDegrees(a * heading + velocity))+o;
+			return (char)b;
+		}
+		
+		public Point2D.Double decode(char symbol) {
+			int o = 200;  //offset symbol pos
+			int n = 19;  //largest non divisible number that returns a remainder
+			double s = (double)Math.toRadians(symbol)-o;
+			double v = s % n;
+			double h = (s-v)/n;
+			return new Point2D.Double(h,v) ;
+		}
+
+			
+	public void onRobotDeath(RobotDeathEvent e) {
+		enemies.remove(e.getName());
+	}
+
+	public void onPaint(Graphics2D g) {	
+/*	
+		g.setColor(new Color(255,255,255,100));
+		g.fillOval((int)cPos.x-25, (int)cPos.y-25, 50, 50);
+		
+		g.setColor(new Color(255,0,0,200));
+		g.fillOval((int)enemyP.x-10, (int)enemyP.y-10, 20, 20);
+		
+		g.setColor(new Color(255,255,255,100));
+		g.drawLine((int)getX(), (int)getY(), (int)gunTracker.x, (int)gunTracker.y);
+	*/
+
+		//g.setColor(new Color(255,0,0,200));
+		//g.fillOval((int)enemyP.x-10, (int)enemyP.y-10, 20, 20);
+}
+
+
+
+
+	//revise this depending on how much data I want to save
+	public class EnemyData {
+		double			vel, pVel;
+		double			heading, pHeading;
+		double			absBearing;
+		long			time;		
+		//Point2D.Double	pos;
+	}
+}
