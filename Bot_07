@@ -9,8 +9,12 @@ import java.awt.Graphics2D;
 public class Bot_v7 extends AdvancedRobot
 {
 
-	static double mVel = Rules.MAX_VELOCITY;
-	static double mTurn = Rules.MAX_TURN_RATE;
+	private static final double MV				= Rules.MAX_VELOCITY; //10
+	private static final double MTR				= Rules.MAX_TURN_RATE; //8
+	private static final double PATTERN_LENGTH	= 500;
+	private static final double MATCH_LENGTH 	= 3;
+	private static final double	FIRE_POWER		= .1;
+	private static final double	FIRE_SPEED		= Rules.getBulletSpeed(FIRE_POWER); //20 - (3 * power)
 	
 	static LinkedHashMap<String,Object> enemies;
 	static int patternLength = 30;
@@ -26,12 +30,17 @@ public class Bot_v7 extends AdvancedRobot
 	//pattern matcher
 		static int n;
 		static double ev[] = new double[50000];
-		static StringBuffer pattern = new StringBuffer();
+	//	static StringBuffer pattern = new StringBuffer();
+		static StringBuilder pattern;
+		static StringBuilder match;
 		double pHeading;
+		static Point2D.Double enemyP;
 
 	public void run()
 	{
 		enemies = new LinkedHashMap<String,Object>(5, 2, true);
+		pattern = new StringBuilder();
+		match = new StringBuilder();
 		target = new EnemyData();
         setAdjustGunForRobotTurn(true);
         setAdjustRadarForGunTurn(true);
@@ -73,12 +82,36 @@ public class Bot_v7 extends AdvancedRobot
 				setTurnRadarRightRadians(scanDir * Double.POSITIVE_INFINITY);
 			}
 		}
-
-		//Heading & Velocity Pattern Matching
-		Point2D.Double eTick = new Point2D.Double(e.getHeadingRadians(), e.getVelocity());
-		char symbol =  (char)(19*Math.rint(Math.toDegrees(eTick.x-pHeading)+mTurn)+eTick.y+mVel);
-		Point2D.Double decode = new Point2D.Double(Math.toRadians(symbol/19-mTurn),symbol%19-mVel);
 		
+		//Enemy Position
+		Point2D.Double myP = new Point2D.Double(getX(), getY());
+		enemyP = project(myP, en.absBearing, e.getDistance());
+
+		//Pattern Matching
+		Point2D.Double eTick = new Point2D.Double(e.getHeadingRadians(), e.getVelocity());
+		char symbol = (char)(19*Math.rint(Math.toDegrees(eTick.x-pHeading)+MTR)+eTick.y+MV);	
+		pattern.append(symbol);
+		match.append(symbol);
+		
+		if (match.length()>MATCH_LENGTH) match.deleteCharAt(0);	
+		if (pattern.length()>PATTERN_LENGTH) pattern.deleteCharAt(0);
+		int index = (pattern.indexOf(match.toString()) != pattern.length()-match.length()) ? pattern.indexOf(match.toString()) : -1;
+
+		out.println(
+		"distance: " + myP.distance(enemyP) + "\n" +
+		"pattern: " + pattern + "\n" +
+		"match: " + match + "\n" +
+		"index: " + index + "\n\n"
+		);
+	
+		//decode symbols
+		Point2D.Double decode = new Point2D.Double(Math.toRadians(symbol/19-MTR),symbol%19-MV);
+		enemyP = project(enemyP, decode.x, decode.y);
+		
+		//turn gun
+		double absoluteBearing = Math.atan2(enemyP.x - myP.x, enemyP.y - myP.y);
+		double gunTurn = absoluteBearing - getGunHeadingRadians();
+		setTurnGunRightRadians(normalRelativeAngle(gunTurn));
 /*
 		out.println(
 			"base h/v: " + (eTick.x - pHeading) + "/" + eTick.y + "\n" +		
@@ -96,15 +129,17 @@ public class Bot_v7 extends AdvancedRobot
 			//pattern contains the velocity of the enemy
 			//the pattern matcher calculates the best gun bearing to fire based on target previous movements
 			
-
+/*
 			double targetBearing;
 			setTurnRadarRightRadians(Math.sin((targetBearing = e.getBearingRadians() + getHeadingRadians()) - getRadarHeadingRadians()));
 			ev[++n] = ev[n - 1] + e.getVelocity() * Math.sin(e.getHeadingRadians() - targetBearing);
 			pattern.append(Character.forDigit((int)e.getVelocity() + 8, 20));
 			int pointer = pattern.toString().indexOf(pattern.substring(Math.max(pattern.length() - 10, 0))) + 9;
 			setTurnGunRightRadians(Math.sin(((ev[Math.min(pointer + (int)e.getDistance() / 11, n)] - ev[pointer]) / e.getDistance () + targetBearing) - getGunHeadingRadians()));
-			setFire(3);
-			out.println(ev[pointer]);
+			//setFire(3);
+			
+			out.println(pointer);
+			*/
 		}
 
 			
@@ -112,20 +147,28 @@ public class Bot_v7 extends AdvancedRobot
 		enemies.remove(e.getName());
 	}
 
+	private static Point2D.Double project(Point2D.Double p, double angle, double distance)
+	{
+		double x = p.x + distance * Math.sin(angle);
+		double y = p.y + distance * Math.cos(angle);
+		return new Point2D.Double(x, y);
+	}
+	
 	public void onPaint(Graphics2D g) {	
-/*	
+	
 		g.setColor(new Color(255,255,255,100));
-		g.fillOval((int)cPos.x-25, (int)cPos.y-25, 50, 50);
-		
+		g.fillOval((int)enemyP.x-25, (int)enemyP.y-25, 50, 50);
+/*		
 		g.setColor(new Color(255,0,0,200));
 		g.fillOval((int)enemyP.x-10, (int)enemyP.y-10, 20, 20);
 		
 		g.setColor(new Color(255,255,255,100));
 		g.drawLine((int)getX(), (int)getY(), (int)gunTracker.x, (int)gunTracker.y);
-	*/
 
-		//g.setColor(new Color(255,0,0,200));
-		//g.fillOval((int)enemyP.x-10, (int)enemyP.y-10, 20, 20);
+
+		g.setColor(new Color(255,0,0,200));
+		g.fillOval((int)enemyP.x-10, (int)enemyP.y-10, 20, 20);
+*/
 }
 
 
