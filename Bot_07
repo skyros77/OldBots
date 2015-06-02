@@ -35,6 +35,8 @@ public class Bot_v7 extends AdvancedRobot
 		static StringBuilder match;
 		double pHeading;
 		static Point2D.Double enemyP;
+		static Point2D.Double predict;
+				double a;
 
 	public void run()
 	{
@@ -95,18 +97,37 @@ public class Bot_v7 extends AdvancedRobot
 		
 		if (match.length()>MATCH_LENGTH) match.deleteCharAt(0);	
 		if (pattern.length()>PATTERN_LENGTH) pattern.deleteCharAt(0);
+		
+		int offset = (int)Math.rint(myP.distance(enemyP)/FIRE_SPEED);
+		
+
+		out.println(offset);
 		int index = (pattern.indexOf(match.toString()) != pattern.length()-match.length()) ? pattern.indexOf(match.toString()) : -1;
 
+
+		while(index != -1 && index <= offset)
+		{
+			a += Math.toRadians(pattern.charAt(index)/19-MTR);
+			out.println(a);
+		}
+
+		
+		/*
+		//cal
 		out.println(
 		"distance: " + myP.distance(enemyP) + "\n" +
+		"fire speed: " + FIRE_SPEED + "\n" +
 		"pattern: " + pattern + "\n" +
 		"match: " + match + "\n" +
-		"index: " + index + "\n\n"
+		"index offset: "+ offset + "\n" +
+		"index/char: " + index + "/" + a + "\n" + 
+		"predict: " + predict.x  + "/" + predict.y  + "\n\n"
 		);
-	
+	*/
 		//decode symbols
-		Point2D.Double decode = new Point2D.Double(Math.toRadians(symbol/19-MTR),symbol%19-MV);
-		enemyP = project(enemyP, decode.x, decode.y);
+		//Point2D.Double decode = new Point2D.Double(Math.toRadians(symbol/19-MTR),symbol%19-MV);
+		//enemyP = project(enemyP, decode.x, decode.y);
+	//	enemyP = project(enemyP, predict.x, predict.y);
 		
 		//turn gun
 		double absoluteBearing = Math.atan2(enemyP.x - myP.x, enemyP.y - myP.y);
