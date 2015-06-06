@@ -1,0 +1,112 @@
+package mo;
+import robocode.*;
+import java.util.List;
+import java.util.ArrayList;
+import robocode.util.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.Point2D;
+
+public class LinearTargeting_v2 extends AdvancedRobot
+{
+
+
+	Point2D.Double myP, enemyP, eTick;
+	double pHeading,h,v,predictedDist;
+	static StringBuilder pattern, match;
+	private static final double PATTERN_LENGTH	= 500;
+	private static final double MATCH_LENGTH 	= 3;
+		
+	private static List<Point2D.Double>	predictions	= new ArrayList<Point2D.Double>();
+	double bulletPower = 0.1;
+	double myX;
+	double myY;
+	double absoluteBearing;
+	double enemyX;
+	double enemyY;
+	double enemyHeading;
+	double enemyVelocity;
+	double deltaTime;
+	double predictedX;
+	double predictedY;
+
+	public void run() {
+		pattern = new StringBuilder();
+		match = new StringBuilder();
+        setAdjustGunForRobotTurn(true);
+        setAdjustRadarForGunTurn(true);	
+		turnRadarRightRadians(Double.POSITIVE_INFINITY);
+	}
+
+
+	public void onScannedRobot(ScannedRobotEvent e)
+	{		
+	
+
+
+		fire(bulletPower);
+
+		//Pattern Matching
+		eTick = new Point2D.Double(e.getHeadingRadians()-pHeading, e.getVelocity());
+		char symbol = (char)(19*Math.rint(Math.toDegrees(eTick.x)+10)+eTick.y+8);	
+		pattern.append(symbol);
+		match.append(symbol);
+		
+		if (match.length()>MATCH_LENGTH) match.deleteCharAt(0);	//turn this into a string
+		if (pattern.length()>PATTERN_LENGTH) pattern.deleteCharAt(0);
+
+		pHeading = e.getHeadingRadians();
+
+		predictions.clear();	
+		myX = getX();
+		myY = getY();
+		absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+		enemyX = getX() + e.getDistance() * Math.sin(absoluteBearing);
+		enemyY = getY() + e.getDistance() * Math.cos(absoluteBearing);
+		enemyHeading = e.getHeadingRadians();
+		enemyVelocity = e.getVelocity();
+		deltaTime = 0;
+		predictedX = enemyX;
+		predictedY = enemyY;
+		predictedDist = Point2D.Double.distance(myX, myY, predictedX, predictedY);
+		
+		while((++deltaTime) * (20.0 - 3.0 * bulletPower) < predictedDist)
+		{	
+
+
+			int index = pattern.indexOf(match.toString());
+			int pos = (int)pattern.charAt(index);
+			
+
+			h = Math.toRadians(pos/19-10);
+			v = pos%19-8;
+
+			out.println("h/v" + h + "/" + v + "\n");
+			
+
+			predictedX += Math.sin(enemyHeading) * v;	
+			predictedY += Math.cos(enemyHeading) * v;
+			predictions.add(new Point2D.Double(predictedX,predictedY));
+		}
+		
+		//out.println("predictions: " + predictions + "\n");
+		
+		double theta = Utils.normalAbsoluteAngle(Math.atan2(predictedX - getX(), predictedY - getY()));
+		setTurnRadarLeftRadians(getRadarTurnRemainingRadians());
+		setTurnGunRightRadians(Utils.normalRelativeAngle(theta - getGunHeadingRadians()));
+
+	}
+	
+	public void onPaint(Graphics2D g) {
+		
+		g.setColor(Color.WHITE);
+		for (Point2D.Double p : predictions)
+		{
+			g.fillOval((int) p.x - 1, (int) p.y - 1, 2, 2);
+		}
+
+		g.setColor(Color.RED);
+		g.fillOval((int)predictedX-3, (int)predictedY-3, 6, 6);
+	}
+	
+}
