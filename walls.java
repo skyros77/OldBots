@@ -14,7 +14,7 @@ public class Walls extends AdvancedRobot {
 	private static Rectangle2D.Double field;	
 	private static Point2D.Double pos, tPos;
 	
-	private static Point2D.Double p1, p2, arcPos;
+	private static Point2D.Double p1, p2, arcPos, arcPos2;
 	//getBattleFieldWidth(), getBattleFieldHeight()
 
 	//scaledValue = getVelocity()/8 //normalize velocity
@@ -28,6 +28,8 @@ public class Walls extends AdvancedRobot {
 
 			pos = new Point2D.Double(getX(),getY());
 			tPos = getPos(pos,getHeadingRadians(),arcRadius);
+			arcPos2 =getPos(pos, getHeadingRadians()+(Math.PI/2), arcRadius);
+
 			field = new Rectangle2D.Double(0,0,getBattleFieldWidth(),getBattleFieldHeight());
 			
 			int coords = (int)(Math.floor(getHeadingRadians()/(Math.PI/2)));
@@ -157,6 +159,7 @@ public class Walls extends AdvancedRobot {
 		}
 
 		setAhead(64);
+
 	}
 	
 
@@ -197,7 +200,8 @@ public class Walls extends AdvancedRobot {
 		g.drawLine((int)pos.x,(int)pos.y,(int)tPos.x,(int)tPos.y);
 
 		g.setColor(new Color(0,0,255,100));
-    	arc.setArcByCenter(arcPos.x, arcPos.y,arcRadius,0,360, Arc2D.OPEN);
+		g.drawLine((int)pos.x,(int)pos.y,(int)arcPos2.x,(int)arcPos2.y);
+    	arc.setArcByCenter(arcPos2.x, arcPos2.y,arcRadius,0,360, Arc2D.OPEN);
     	g.draw(arc);
 		
 		//g.fillOval((int)tPos.x-10, (int)tPos.y-10, 20, 20);
