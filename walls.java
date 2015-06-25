@@ -14,7 +14,7 @@ public class Walls extends AdvancedRobot {
 	private static Rectangle2D.Double field;	
 	private static Point2D.Double pos, tPos;
 	
-	private static Point2D.Double pX, pY ;
+	private static Point2D.Double p1, p2, arcPos;
 	//getBattleFieldWidth(), getBattleFieldHeight()
 
 	//scaledValue = getVelocity()/8 //normalize velocity
@@ -33,20 +33,20 @@ public class Walls extends AdvancedRobot {
 			int coords = (int)(Math.floor(getHeadingRadians()/(Math.PI/2)));
 			switch (coords) {
 	            case 0:  
-					pX = getPos(pos,Math.PI/2,arcRadius);
-					pY = getPos(pos,Math.PI*2,arcRadius);
+					p1 = getPos(pos,Math.PI/2,arcRadius);
+					p2 = getPos(pos,Math.PI*2,arcRadius);
 	                break;
 				case 1:	
-					pX = getPos(pos,Math.PI/2,arcRadius);
-					pY = getPos(pos,Math.PI,arcRadius);
+					p1 = getPos(pos,Math.PI/2,arcRadius);
+					p2 = getPos(pos,Math.PI,arcRadius);
 					break;
 				case 2:	
-					pX = getPos(pos,(3*Math.PI)/2,arcRadius);
-					pY = getPos(pos,Math.PI,arcRadius);
+					p1 = getPos(pos,(3*Math.PI)/2,arcRadius);
+					p2 = getPos(pos,Math.PI,arcRadius);
 					break;
 				default:	
-					pX = getPos(pos,(3*Math.PI)/2,arcRadius);
-					pY = getPos(pos,Math.PI*2,arcRadius);			
+					p1 = getPos(pos,(3*Math.PI)/2,arcRadius);
+					p2 = getPos(pos,Math.PI*2,arcRadius);			
 			}
 
 /*
@@ -138,10 +138,8 @@ public class Walls extends AdvancedRobot {
 
 	public void doMove()
 	{
-		//if (pX.x<=field.x || pX.x>=field.width)
-		//turn to pY
-		//if (pY.y<=field.y || pY.y>=field.height)
-		//turn to pX
+		if (p1.x<=field.x || p1.x>=field.width) arcPos = p2;
+		if (p2.y<=field.y || p2.y>=field.height) arcPos = p1;
 		
 /*
 		//Point2D.Double delta = new Point2D.Double((pX.x - pos.x),(pX.y - pos.y));
@@ -175,13 +173,7 @@ public class Walls extends AdvancedRobot {
 		g.setColor(new Color(0,0,255,100));
     	arc.setArcByCenter(rotP.x, rotP.y,arcRadius,0,360, Arc2D.PIE);
     	g.fill(arc);
-		*/
-		
-
-		g.setColor(new Color(0,0,255,100));
-    	arc.setArcByCenter(pos.x, pos.y,arcRadius,0,360, Arc2D.OPEN);
-    	g.draw(arc);
-/*		
+	
 		g.setColor(new Color(255,0,0,100));
 		g.drawLine((int)getX(), (int)getY(),(int)stick.x, (int)stick.y);
 		
@@ -198,12 +190,15 @@ public class Walls extends AdvancedRobot {
 		*/
 
 		g.setColor(new Color(255,0,0,100));
-		g.drawLine((int)pos.x,(int)pos.y,(int)pX.x,(int)pX.y);
+		g.drawLine((int)pos.x,(int)pos.y,(int)p1.x,(int)p1.y);
 		g.setColor(new Color(0,255,0,100));
-		g.drawLine((int)pos.x,(int)pos.y,(int)pY.x,(int)pY.y);
+		g.drawLine((int)pos.x,(int)pos.y,(int)p2.x,(int)p2.y);
 		g.setColor(new Color(0,0,255,100));		
 		g.drawLine((int)pos.x,(int)pos.y,(int)tPos.x,(int)tPos.y);
 
+		g.setColor(new Color(0,0,255,100));
+    	arc.setArcByCenter(arcPos.x, arcPos.y,arcRadius,0,360, Arc2D.OPEN);
+    	g.draw(arc);
 		
 		//g.fillOval((int)tPos.x-10, (int)tPos.y-10, 20, 20);
 		//g.fillOval((int)pA.x-6, (int)pA.y-6, 12, 12);
