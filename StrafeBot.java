@@ -29,8 +29,10 @@ public class strafeBot extends AdvancedRobot {
 		
 		//setup
 		myPos = new Point2D.Double(getX(),getY());
-		enemyPos= getPos(myPos,e.getBearingRadians() + getHeadingRadians(),e.getDistance());		
-		double firePower = Math.min(400 / e.getDistance(), 3);
+		enemyPos = getPos(myPos,e.getBearingRadians() + getHeadingRadians(),e.getDistance());
+		double distance = 200/e.getDistance() < 1 ? 0.2 : -0.2;	
+		out.println(e.getDistance());	
+		double firePower = Math.min(600/e.getDistance(), 3);
 		double fireSpeed = 20-firePower*3;	
 		double cHeading = e.getHeadingRadians();
 		double delta = cHeading-pHeading;
@@ -38,7 +40,7 @@ public class strafeBot extends AdvancedRobot {
 		//move
 		// || getVelocity() == 0
 		if (getTime() % randomNum(5,30) == 0) direction *= -1;			
-		setTurnRightRadians(Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 - (.1*direction)));
+		setTurnRightRadians(Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 - (distance*direction)));
 		setAhead(100 * direction);		
 		
 		//predict
