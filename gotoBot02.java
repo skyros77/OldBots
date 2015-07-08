@@ -15,7 +15,7 @@ import java.awt.geom.Arc2D;
 public class GoToBot2 extends AdvancedRobot {
 	Point2D.Double target, pos, ePos, pivot, feeler;
 	Rectangle2D.Double field, bbox;
-	double rad, turn, buffer, dir, vel, eDist;
+	double rad, turn, buffer, dir, vel, eDist, dist;
 	Arc2D.Double arc;
 	int[] edge = new int[] {1,2,4,8};
 	
@@ -26,7 +26,8 @@ public class GoToBot2 extends AdvancedRobot {
 		dir		= 1;
 		buffer	= 18;
 		field	= new Rectangle2D.Double(buffer, buffer, getBattleFieldWidth()-buffer*2, getBattleFieldHeight()-buffer*2);		
-		target	= new Point2D.Double(getX(),getY());
+		//target	= new Point2D.Double(getX(),getY());
+
 		while (true) turnRadarLeftRadians(Double.POSITIVE_INFINITY);
     }
 	
@@ -39,20 +40,32 @@ public class GoToBot2 extends AdvancedRobot {
 		pos		= new Point2D.Double(getX(),getY());
 		ePos 	= getPos(pos,e.getBearingRadians() + getHeadingRadians(), e.getDistance());
 		eDist	= e.getDistance();
-		double distance = 200/e.getDistance() < 1 ? 0.2 : -0.2;			
+		dist 	= 200/eDist < 1 ? -.2 : .2;			
 		vel		= Math.abs(getVelocity());
 		rad		= vel/((10-0.75*vel)/(180/Math.PI));
-		pivot 	= (turn>0) ? getPos(pos, getHeadingRadians()+Math.PI/2*dir, rad) : getPos(pos, getHeadingRadians()-Math.PI/2*dir, rad);	
-		bbox	= new Rectangle2D.Double(pivot.x-rad, pivot.y-rad, rad*2, rad*2);	
-		feeler	= (dir>0) ? getPos(pos, getHeadingRadians(), rad) : getPos(pos, getHeadingRadians()+Math.PI, rad);
-		vel		= (!field.contains(bbox) && !field.contains(feeler)) ? vel-1 : 8; //if collision imminent reduce speed
-		//turn	= (!field.contains(bbox) && !field.contains(feeler)) ? Utils.normalRelativeAngle(e.getBearingRadians() - (distance*dir)) :  Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 - (distance*dir));	
-		
 
+		pivot 	= getPos(pos, getHeadingRadians()-Math.PI/2, rad);	
+		bbox	= new Rectangle2D.Double(pivot.x-rad, pivot.y-rad, rad*2, rad*2);	
+		feeler	= (dir>0) ? getPos(pos, getHeadingRadians(), 115) : getPos(pos, getHeadingRadians()+Math.PI, 115);
+		vel		= (!field.contains(bbox)) ? vel-1 : 8; //if collision imminent reduce speed
+
+
+		turn = Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 + (dist*dir));
+		
+		if (!field.contains(feeler))
+			turn -= Double.POSITIVE_INFINITY*dir;
+	
+		//temp
+		target = ePos;	
+
+	//	turn 	= (!field.contains(bbox) && !field.contains(feeler)) ? turn : Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2);
+
+	
+		//turn	= (!field.contains(bbox) && !field.contains(feeler)) ? Utils.normalRelativeAngle(e.getBearingRadians() - (distance*dir)) :  Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 - (distance*dir));	
 		//turn 	= (dir>0) ? Utils.normalRelativeAngle(absBearing(pos, target)-getHeadingRadians() + Math.PI/2) : Utils.normalRelativeAngle(absBearing(pos, target)-getHeadingRadians() - Math.PI/2);
 		//turn 	= (dir>0) ? Utils.normalRelativeAngle(absBearing(pos, target)-getHeadingRadians()) : Utils.normalRelativeAngle(absBearing(pos, target)-getHeadingRadians()+Math.PI);
 		//turn = Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 - (distance*dir));
-		turn = Utils.normalRelativeAngle(e.getBearingRadians());
+		//turn = Utils.normalRelativeAngle(e.getBearingRadians()); //gotoTarget
 		//check which edge my bot collides on
 	
 /*	
@@ -63,13 +76,10 @@ public class GoToBot2 extends AdvancedRobot {
 				}
 			}		
 		}
-		else {
-			turn = Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 - (distance*dir));
-		}
-		*/
+*/
 					
-	
-/*	if(!field.contains(bbox)) {
+/*	
+	if(!field.contains(bbox)) {
 			int edge = field.outcode(feeler);
 	        switch (edge) {
 	            case 1:  out.println("left");
@@ -89,6 +99,8 @@ public class GoToBot2 extends AdvancedRobot {
 			
 		}
 		*/
+
+		/*
 		//set test location
 		Point2D.Double[] arr = {
 	        new Point2D.Double(Math.random()*field.width+buffer, buffer),
@@ -96,13 +108,13 @@ public class GoToBot2 extends AdvancedRobot {
 	        new Point2D.Double(buffer, Math.random()*field.height+buffer),
 	        new Point2D.Double(field.width+buffer, Math.random()*field.height+buffer)
 	    };		
+		*/
 		
 
 
 		
 
 		//set target location		
-		target = ePos; //enemy
 		//if (pos.distance(target)<rad) target = arr[(int)(Math.random() * arr.length)];	//random edge point	
 		//if (pos.distance(target)<rad) target = new Point2D.Double(randomNum((int)field.x, (int)field.width), randomNum((int)field.y, (int)field.height)); //random field point
 
@@ -110,7 +122,7 @@ public class GoToBot2 extends AdvancedRobot {
 		//if (Math.abs(turn)>Math.PI/2) dir *= -1;
 		
 		//randomly reverse direction
-		//if (getTime() % randomNum(5,30) == 0) dir *= -1;
+		//if (getTime() % randomNum(20,40) == 0) dir *= -1;
 		
 		setTurnRadarRightRadians(Utils.normalRelativeAngle(getHeadingRadians()+e.getBearingRadians()-getRadarHeadingRadians()));
 		setTurnRightRadians(turn);	
@@ -139,19 +151,19 @@ public class GoToBot2 extends AdvancedRobot {
 	
 	public void onPaint(Graphics2D g)
 	{	
-		g.setColor(new Color(255,0,0,75));		
+		g.setColor(new Color(255,0,0,100));		
 		g.fillOval((int)(target.x-10),(int)(target.y-10),20,20);
 		g.drawLine((int)pos.x, (int)pos.y, (int)target.x, (int)target.y);
 		g.drawRect((int)field.x, (int)field.y, (int)field.width, (int)field.height);	
 		
-		g.setColor(new Color(0,255,0,75));
+		g.setColor(new Color(0,255,0,100));
 		g.drawLine((int)pos.x, (int)pos.y, (int)feeler.x, (int)feeler.y);
 		
 		arc.setArcByCenter(ePos.x,ePos.y,eDist,0,360, Arc2D.OPEN);
 		g.draw(arc);
 		
     	//if(Math.abs(getTurnRemainingRadians())>0.15) {
-			g.setColor(new Color(0,0,255,15));
+			g.setColor(new Color(0,0,255,50));
 			g.fillOval((int)(pivot.x-rad), (int)(pivot.y-rad), (int)(rad*2), (int)(rad*2));						
 		//}
 	}
