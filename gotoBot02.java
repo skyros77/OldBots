@@ -37,20 +37,19 @@ public class GoToBot2 extends AdvancedRobot {
 		//scan
 		setTurnRadarRightRadians(Utils.normalRelativeAngle(getHeadingRadians() - getRadarHeadingRadians() + e.getBearingRadians()));
 		
-		pos		= new Point2D.Double(getX(),getY());
+		pos	= new Point2D.Double(getX(),getY());
 		ePos 	= getPos(pos,e.getBearingRadians() + getHeadingRadians(), e.getDistance());
 		eDist	= e.getDistance();
 		dist 	= 200/eDist < 1 ? -.2 : .2;			
-		vel		= Math.abs(getVelocity());
-		rad		= vel/((10-0.75*vel)/(180/Math.PI));
+		vel	= Math.abs(getVelocity());
+		rad	= vel/((10-0.75*vel)/(180/Math.PI));
 
 		pivot 	= getPos(pos, getHeadingRadians()-Math.PI/2, rad);	
 		bbox	= new Rectangle2D.Double(pivot.x-rad, pivot.y-rad, rad*2, rad*2);	
-		feeler	= (dir>0) ? getPos(pos, getHeadingRadians(), 115) : getPos(pos, getHeadingRadians()+Math.PI, 115);
-		vel		= (!field.contains(bbox)) ? vel-1 : 8; //if collision imminent reduce speed
+		feeler	= getPos(pos, getHeadingRadians(), 115*dir);	
+		vel	= (!field.contains(bbox)) ? vel-1 : 8; //if collision imminent reduce speed
 
-
-		turn = Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 + (dist*dir));
+		turn	= Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 + (dist*dir));
 		
 		if (!field.contains(feeler))
 			turn -= Double.POSITIVE_INFINITY*dir;
