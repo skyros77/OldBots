@@ -40,17 +40,16 @@ public class GoToBot2 extends AdvancedRobot {
 		pos			= new Point2D.Double(getX(),getY());
 		ePos 		= getPos(pos,e.getBearingRadians() + getHeadingRadians(), e.getDistance());
 		eDist		= e.getDistance();
-		dist 		= 200/eDist < 1 ? -.2 : .2;
+		dist 		= 300/eDist < 1 ? -.1 : .1;
 		vel			= Math.abs(getVelocity());
 		rad			= vel/((10-0.75*vel)/(180/Math.PI));
 		arcPivot	= getPos(pos,e.getBearingRadians() + getHeadingRadians(), e.getDistance()/2);
 		
 		pivot 		= getPos(pos, getHeadingRadians()-Math.PI/2, rad);
-		//bbox		= new Rectangle2D.Double(pivot.x-rad, pivot.y-rad, rad*2, rad*2);
-		bbox 		= new Rectangle2D.Double(arcPivot.x-eDist/2, arcPivot.y-eDist/2, eDist, eDist);
+		bbox		= new Rectangle2D.Double(pivot.x-rad, pivot.y-rad, rad*2, rad*2);
+		//bbox 		= new Rectangle2D.Double(arcPivot.x-eDist/2, arcPivot.y-eDist/2, eDist, eDist);
 		feeler		= getPos(pos, getHeadingRadians(), 115*dir);		
 		vel			= (!field.contains(bbox) && !field.contains(feeler)) ? vel-1 : 8; //if collision imminent reduce speed
-
 
 		turn 		= Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 + (dist*dir));
 
@@ -58,7 +57,7 @@ public class GoToBot2 extends AdvancedRobot {
 			turn -= Double.POSITIVE_INFINITY*dir;
 
 		//temp
-		target = arcPivot;
+		target = ePos;
 
 		//turn 	= (!field.contains(bbox) && !field.contains(feeler)) ? turn : Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2);
 		//turn	= (!field.contains(bbox) && !field.contains(feeler)) ? Utils.normalRelativeAngle(e.getBearingRadians() - (distance*dir)) :  Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 - (distance*dir));
@@ -122,7 +121,7 @@ public class GoToBot2 extends AdvancedRobot {
 		//if (Math.abs(turn)>Math.PI/2) dir *= -1;
 
 		//randomly reverse direction
-		//if (getTime() % randomNum(20,40) == 0) dir *= -1;
+		//if (getTime() % randomNum(5,30) == 0) dir *= -1;
 
 		setTurnRadarRightRadians(Utils.normalRelativeAngle(getHeadingRadians()+e.getBearingRadians()-getRadarHeadingRadians()));
 		setTurnRightRadians(turn);
@@ -155,7 +154,6 @@ public class GoToBot2 extends AdvancedRobot {
 		g.fillOval((int)(target.x-6),(int)(target.y-6),12,12);
 		g.drawLine((int)pos.x, (int)pos.y, (int)target.x, (int)target.y);
 		g.drawRect((int)field.x, (int)field.y, (int)field.width, (int)field.height);
-		g.drawRect((int)bbox.x, (int)bbox.y, (int)bbox.width, (int)bbox.height);
 		
 		g.setColor(new Color(0,255,0,100));
 		g.drawLine((int)pos.x, (int)pos.y, (int)feeler.x, (int)feeler.y);
@@ -168,7 +166,7 @@ public class GoToBot2 extends AdvancedRobot {
 
     	//if(Math.abs(getTurnRemainingRadians())>0.15) {
 			g.setColor(new Color(0,0,255,50));
-			//g.fillOval((int)(pivot.x-rad), (int)(pivot.y-rad), (int)(rad*2), (int)(rad*2));
+			g.fillOval((int)(pivot.x-rad), (int)(pivot.y-rad), (int)(rad*2), (int)(rad*2));
 		//}
 	}
 }
