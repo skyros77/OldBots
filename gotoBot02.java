@@ -9,56 +9,56 @@ import robocode.util.*;
 import java.awt.geom.*;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.geom.Arc2D;
-
+import java.util.List;
+import java.util.ArrayList;
 
 public class GoToBot2 extends AdvancedRobot {
-	Point2D.Double target, pos, ePos, pivot, feeler, arcPivot;
+	Point2D.Double pos, ePos, pivot, feeler, eArc;
 	Rectangle2D.Double field, bbox;
 	double rad, turn, buffer, dir, vel, eDist, dist;
-	Arc2D.Double arc;
+	//Arc2D.Double arc;
 	int[] edge = new int[] {1,2,4,8};
-
+	List<Point2D.Double> prev = new ArrayList<Point2D.Double>();
+	
     public void run() {
+		prev.clear();
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
-		arc		= new Arc2D.Double();
+		//arc		= new Arc2D.Double();
 		dir		= -1;
-		buffer	= 18;
+		buffer	= 19;
 		field	= new Rectangle2D.Double(buffer, buffer, getBattleFieldWidth()-buffer*2, getBattleFieldHeight()-buffer*2);
-		//target	= new Point2D.Double(getX(),getY());
 
 		while (true) turnRadarLeftRadians(Double.POSITIVE_INFINITY);
     }
 
     public void onScannedRobot(ScannedRobotEvent e)
 	{
-
+	
+		
 		//scan
 		setTurnRadarRightRadians(Utils.normalRelativeAngle(getHeadingRadians() - getRadarHeadingRadians() + e.getBearingRadians()));
 
 		pos			= new Point2D.Double(getX(),getY());
 		ePos 		= getPos(pos,e.getBearingRadians() + getHeadingRadians(), e.getDistance());
+		eArc		= getPos(pos,e.getBearingRadians() + getHeadingRadians(), e.getDistance()/2);		
 		eDist		= e.getDistance();
-		dist 		= 300/eDist < 1 ? -.1 : .1;
+		dist 		= 300/eDist < 1 ? -.2 : .2;
 		vel			= Math.abs(getVelocity());
 		rad			= vel/((10-0.75*vel)/(180/Math.PI));
-		arcPivot	= getPos(pos,e.getBearingRadians() + getHeadingRadians(), e.getDistance()/2);
-		
+
 		pivot 		= getPos(pos, getHeadingRadians()-Math.PI/2, rad);
 		bbox		= new Rectangle2D.Double(pivot.x-rad, pivot.y-rad, rad*2, rad*2);
-		//bbox 		= new Rectangle2D.Double(arcPivot.x-eDist/2, arcPivot.y-eDist/2, eDist, eDist);
-		feeler		= getPos(pos, getHeadingRadians(), 115*dir);		
-		vel			= (!field.contains(bbox) && !field.contains(feeler)) ? vel-1 : 8; //if collision imminent reduce speed
-
+		feeler		= getPos(pos, getHeadingRadians(), rad*dir);		
+		vel			= (!field.contains(bbox) && !field.contains(feeler)) ? vel-1 : 8;
 		turn 		= Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 + (dist*dir));
 
 		if (!field.contains(feeler))
-			turn -= Double.POSITIVE_INFINITY*dir;
+			turn += Double.NEGATIVE_INFINITY*dir;
 
-		//temp
-		target = ePos;
-
+		prev.add(pos);
+		if (prev.size()>50) prev.remove(0);	
+	
 		//turn 	= (!field.contains(bbox) && !field.contains(feeler)) ? turn : Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2);
 		//turn	= (!field.contains(bbox) && !field.contains(feeler)) ? Utils.normalRelativeAngle(e.getBearingRadians() - (distance*dir)) :  Utils.normalRelativeAngle(e.getBearingRadians() + Math.PI/2 - (distance*dir));
 		//turn 	= (dir>0) ? Utils.normalRelativeAngle(absBearing(pos, target)-getHeadingRadians() + Math.PI/2) : Utils.normalRelativeAngle(absBearing(pos, target)-getHeadingRadians() - Math.PI/2);
@@ -135,25 +135,33 @@ public class GoToBot2 extends AdvancedRobot {
 		return new Point2D.Double(x, y);
 	}
 
+	/*
     private double absBearing(Point2D source, Point2D target) {
 		return Math.atan2(target.getX()-source.getX(), target.getY()-source.getY());
     }
+	*/
 
 	int randomNum(int min, int max)	{
 	   int range = (max - min) + 1;
 	   return (int)(Math.random() * range) + min;
 	}
 
-	public void onHitRobot(HitRobotEvent e) {
-		target = getPos(pos, getHeadingRadians()+Math.PI, 150); //I have no good solution for this
-	}
+	public void onHitRobot(HitRobotEvent e){}
 
 	public void onPaint(Graphics2D g)
 	{
 		g.setColor(new Color(255,0,0,100));
-		g.fillOval((int)(target.x-6),(int)(target.y-6),12,12);
-		g.drawLine((int)pos.x, (int)pos.y, (int)target.x, (int)target.y);
+		for (int i=1; i < prev.size(); i++) {
+			g.drawLine((int)prev.get(i).x, (int)prev.get(i).y, (int)prev.get(i-1).x, (int)prev.get(i-1).y);
+		}
+
+		g.setColor(new Color(255,0,0,100));
+		g.fillOval((int)(ePos.x-6),(int)(ePos.y-6),12,12);
+		g.drawLine((int)pos.x, (int)pos.y, (int)ePos.x, (int)ePos.y);
 		g.drawRect((int)field.x, (int)field.y, (int)field.width, (int)field.height);
+		
+		g.setColor(new Color(0,255,0,100));
+		g.drawOval((int)(eArc.x-eDist/2),(int)(eArc.y-eDist/2),(int)eDist,(int)eDist);
 		
 		g.setColor(new Color(0,255,0,100));
 		g.drawLine((int)pos.x, (int)pos.y, (int)feeler.x, (int)feeler.y);
@@ -161,8 +169,8 @@ public class GoToBot2 extends AdvancedRobot {
 		//arc.setArcByCenter(ePos.x,ePos.y,eDist,0,360, Arc2D.OPEN);
 		//g.draw(arc);
 		
-		arc.setArcByCenter(arcPivot.x, arcPivot.y, eDist/2, 0, 360, Arc2D.OPEN);
-		g.draw(arc);		
+		//arc.setArcByCenter(arc.x, arc.y, eDist/2, 0, 360, Arc2D.OPEN);
+		//g.draw(arc);		
 
     	//if(Math.abs(getTurnRemainingRadians())>0.15) {
 			g.setColor(new Color(0,0,255,50));
