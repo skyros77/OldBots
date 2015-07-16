@@ -1,14 +1,15 @@
 package mo; 
 import robocode.*;
-import robocode.util.Utils;
-
+import mo.Data.*;
 import java.util.*;
 
 public class PewPew extends AdvancedRobot
 {
+	
+	private EnemyData enemy = new EnemyData();
+	
+	
 	static LinkedHashMap<String, HashMap<String, Object>> myArray = new LinkedHashMap<String, HashMap<String, Object>>(5, 2, false);
-	
-	
 	static LinkedHashMap<String, Double> target = new LinkedHashMap<String,Double>(5, 2, true);
 	double scanDir = 1;
 	static Object sought;	
@@ -21,8 +22,9 @@ public class PewPew extends AdvancedRobot
 	}
 	
 	public void onScannedRobot(ScannedRobotEvent e) {
-
+		enemy.update(e);
 		
+		/*
 	    String name = e.getName();
 		
 		if (!myArray.containsKey(name)) {
@@ -30,7 +32,7 @@ public class PewPew extends AdvancedRobot
 		}
 		myArray.get(name).put("velocity", e.getVelocity());
 		myArray.get(name).put("bearing", getHeadingRadians() + e.getBearingRadians());
-		printMap(myArray);
+		*/
 
 		
 		//for (Map.Entry<String, HashMap<String, Object>> cursor : myArray.entrySet())
@@ -49,15 +51,10 @@ public class PewPew extends AdvancedRobot
 	    out.println(scanDir);
 	    */
 	}
-
-	public void printMap(LinkedHashMap<String, HashMap<String, Object>> map) {
-		for (Map.Entry<String, HashMap<String, Object>> cursor : map.entrySet())
-			out.println(cursor.getKey() +" = "+ cursor.getKey());
-	}
 	
     public void onRobotDeath(RobotDeathEvent e) {
-        target.remove(e.getName());
-        sought = null;
+    	enemy.update(e);
+        //sought = null;
     }
 }
 	
