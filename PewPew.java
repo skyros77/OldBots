@@ -1,60 +1,27 @@
 package mo; 
-import robocode.*;
 import mo.Data.*;
-import java.util.*;
+import robocode.*;
 
 public class PewPew extends AdvancedRobot
 {
-	
-	private EnemyData enemy = new EnemyData();
-	
-	
-	static LinkedHashMap<String, HashMap<String, Object>> myArray = new LinkedHashMap<String, HashMap<String, Object>>(5, 2, false);
-	static LinkedHashMap<String, Double> target = new LinkedHashMap<String,Double>(5, 2, true);
-	double scanDir = 1;
-	static Object sought;	
+	private BotData myBot;	
+	private EnemyData enemy;
+	private RadarData radar;	
 	
 	public void run() {
-		while(true) {
-			setTurnRadarRightRadians(Double.POSITIVE_INFINITY*scanDir);
-			scan();
-		}
+		myBot = new BotData(this);
+		enemy = new EnemyData();	
+		radar = new RadarData();	
+
+ 		while(true) turnRadarRightRadians(Double.POSITIVE_INFINITY);
 	}
-	
+		
 	public void onScannedRobot(ScannedRobotEvent e) {
 		enemy.update(e);
-		
-		/*
-	    String name = e.getName();
-		
-		if (!myArray.containsKey(name)) {
-		    myArray.put(name, new HashMap<String, Object>());
-		}
-		myArray.get(name).put("velocity", e.getVelocity());
-		myArray.get(name).put("bearing", getHeadingRadians() + e.getBearingRadians());
-		*/
-
-		
-		//for (Map.Entry<String, HashMap<String, Object>> cursor : myArray.entrySet())
-		//	scanDir = Utils.normalRelativeAngle(cursor.getKey().getValue() - getRadarHeadingRadians())
-			
-			
-		//out.println(myArray.get(name).get("distance"));
-		
-		/*
-	    target.put(name, getHeadingRadians() + e.getBearingRadians());
-	 
-	    if ((name == sought || sought == null) && target.size() == getOthers()) {
-		scanDir = Utils.normalRelativeAngle(target.values().iterator().next() - getRadarHeadingRadians());
-	        sought = target.keySet().iterator().next();
-	    }
-	    out.println(scanDir);
-	    */
+		radar.update(e);
 	}
 	
     public void onRobotDeath(RobotDeathEvent e) {
     	enemy.update(e);
-        //sought = null;
     }
 }
-	
