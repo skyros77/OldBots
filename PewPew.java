@@ -1,16 +1,14 @@
 package mo;
 import java.awt.Graphics2D;
-
 import mo.Data.*;
 import mo.Utils.*;
 import robocode.*;
 
 public class PewPew extends AdvancedRobot {
 	
-	private BotData myBot;	
+	private BotData	myBot;	
 	private EnemyData enemy;
 	private RadarData radar;
-	private PaintUtils paint;
 	
 	public void run() {
 		myBot = new BotData(this);
@@ -26,6 +24,8 @@ public class PewPew extends AdvancedRobot {
 		myBot.update();
 		enemy.update(e);
 		radar.update(e);
+		
+		//BotUtils.printMap(EnemyData.enemy);
 	}
 	
     public void onRobotDeath(RobotDeathEvent e) {
@@ -33,6 +33,6 @@ public class PewPew extends AdvancedRobot {
     }
     
     public void onPaint(Graphics2D g) {
-    	//PaintUtils.drawPos(g, RadarData.scanTargetPos); 	
+    	PaintUtils.drawPos(g, EnemyData.ePos); 	
     }
 }
