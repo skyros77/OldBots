@@ -1,16 +1,15 @@
 package mo.Utils;
-
 import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 
 public class BotUtils {
 	
-	//print out hashmap information
-	public static void printMapKey(LinkedHashMap<String, HashMap<String, Object>> enemy) {
+	//print out map information
+	public static void printMap(LinkedHashMap<String, HashMap<String, Object>> enemy) {
 		for (Entry<String, HashMap<String, Object>> cursor : enemy.entrySet()) {
+			System.out.println(cursor);
 		}
 	}
 	
