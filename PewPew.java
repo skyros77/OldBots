@@ -24,8 +24,6 @@ public class PewPew extends AdvancedRobot {
 		myBot.update();
 		enemy.update(e);
 		radar.update(e);
-		
-		//BotUtils.printMap(EnemyData.enemy);
 	}
 	
     public void onRobotDeath(RobotDeathEvent e) {
