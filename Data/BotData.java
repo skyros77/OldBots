@@ -3,9 +3,11 @@ package mo.Data;
 import robocode.*;
 import java.awt.geom.Point2D;
 
-public class BotData{
+public class BotData {
 
-	//VARIABLES
+	
+	//TEST PUSH
+	// VARIABLES
 	private AdvancedRobot myBot;
 	private Point2D.Double myPos;
 	private double headingRadians;
@@ -13,7 +15,7 @@ public class BotData{
 	private int getOthers;
 
 	// CONSTRUCTORS
-	
+
 	public BotData() {
 	}
 
@@ -26,11 +28,11 @@ public class BotData{
 	}
 
 	// ACCESSORS
-	
+
 	public AdvancedRobot getBot() {
 		return this.myBot;
 	}
-	
+
 	public Point2D.Double getPos() {
 		return this.myPos;
 	}
@@ -49,11 +51,9 @@ public class BotData{
 
 	// METHODS
 	/*
-	public void update() {	
-		myPos = new Point2D.Double(myBot.getX(), myBot.getY());
-		headingRadians = myBot.getHeadingRadians();
-		radarHeadingRadians = myBot.getRadarHeadingRadians();
-		getOthers = myBot.getOthers();
-	}
-	*/
+	 * public void update() { myPos = new Point2D.Double(myBot.getX(),
+	 * myBot.getY()); headingRadians = myBot.getHeadingRadians();
+	 * radarHeadingRadians = myBot.getRadarHeadingRadians(); getOthers =
+	 * myBot.getOthers(); }
+	 */
 }
