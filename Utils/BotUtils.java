@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 public class BotUtils {
 	
 	//print out map information
-	public static void printMap(LinkedHashMap<String, HashMap<String, Object>> enemy) {
+	public void printMap(LinkedHashMap<String, HashMap<String, Object>> enemy) {
 		for (Entry<String, HashMap<String, Object>> cursor : enemy.entrySet()) {
 			System.out.println(cursor);
 		}
